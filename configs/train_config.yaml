@@ -1,0 +1,55 @@
+# Training Configuration for ND-TWIN Dataset
+data:
+  dataset_path: "path/to/dataset"  # Path to the ND_TWIN dataset folder
+  pairs_file: "path/to/pairs.json"  # Path to pairs.json file
+  image_size: 224
+  batch_size: 16
+  num_workers: 4
+  train_split: 0.8
+  val_split: 0.1
+  test_split: 0.1
+
+model:
+  backbone: "resnet50"  # Options: resnet50, resnet101, efficientnet_b0, etc.
+  pretrained: true
+  embedding_dim: 512
+  attention_type: "cbam"  # Options: cbam, transformer, spatial
+  dropout: 0.3
+  freeze_backbone_epochs: 0  # Number of epochs to freeze backbone
+
+training:
+  epochs: 100
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  scheduler: "cosine"  # Options: cosine, step, plateau
+  patience: 10
+  margin: 1.0  # For contrastive loss
+  
+loss:
+  type: "contrastive"  # Options: contrastive, triplet, combined
+  weight_global: 0.6
+  weight_local: 0.4
+  attention_reg_weight: 0.01
+  
+augmentation:
+  horizontal_flip: 0.5
+  rotation_range: 10
+  brightness: 0.2
+  contrast: 0.2
+  saturation: 0.2
+  hue: 0.1
+  
+validation:
+  threshold_start: 0.5
+  threshold_end: 0.9
+  threshold_step: 0.05
+  
+checkpoint:
+  save_dir: "checkpoints"
+  save_best_only: true
+  save_frequency: 5
+  
+logging:
+  log_dir: "logs"
+  log_frequency: 100
+  visualize_attention: true

@@ -1,0 +1,65 @@
+# Docker Compose configuration for development and deployment
+
+version: '3.8'
+
+services:
+  # Training service
+  train:
+    build: .
+    container_name: ndtwin_train
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - CUDA_VISIBLE_DEVICES=0
+    volumes:
+      - ./data:/workspace/data
+      - ./outputs:/workspace/outputs
+      - ./checkpoints:/workspace/checkpoints
+      - ./logs:/workspace/logs
+    command: python examples/train_model.py --data_root /workspace/data --output_dir /workspace/outputs
+    
+  # Inference service
+  inference:
+    build: .
+    container_name: ndtwin_inference
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - CUDA_VISIBLE_DEVICES=0
+    volumes:
+      - ./data:/workspace/data
+      - ./outputs:/workspace/outputs
+      - ./checkpoints:/workspace/checkpoints
+    ports:
+      - "8000:8000"
+    command: python -m uvicorn inference_api:app --host 0.0.0.0 --port 8000
+    
+  # TensorBoard service
+  tensorboard:
+    build: .
+    container_name: ndtwin_tensorboard
+    volumes:
+      - ./outputs:/workspace/outputs
+      - ./logs:/workspace/logs
+    ports:
+      - "6006:6006"
+    command: tensorboard --logdir /workspace/outputs/tensorboard --host 0.0.0.0 --port 6006
+    
+  # Development environment
+  dev:
+    build: .
+    container_name: ndtwin_dev
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    volumes:
+      - .:/workspace
+      - ./data:/workspace/data
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+# Named volumes for persistent storage
+volumes:
+  model_checkpoints:
+  training_logs:
