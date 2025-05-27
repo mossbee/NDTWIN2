@@ -1,7 +1,12 @@
 # Training Configuration for ND-TWIN Dataset
 data:
-  dataset_path: "path/to/dataset"  # Path to the ND_TWIN dataset folder
-  pairs_file: "path/to/pairs.json"  # Path to pairs.json file
+  dataset_path: "/media/mossbee/Uxie/Projects/NDTWIN_Dataset"  # Path to the ND_TWIN dataset folder
+  pairs_file: "/media/mossbee/Uxie/Projects/pairs.json"  # Path to pairs.json file
+  # Preprocessing options
+  use_preprocessed: true  # Whether to use preprocessed images
+  preprocessed_path: "/media/mossbee/Uxie/Projects/NDTWIN_Dataset_Aligned"  # Path to preprocessed images folder
+  use_face_alignment: false  # Face alignment for non-preprocessed images
+  # Data loading options
   image_size: 224
   batch_size: 16
   num_workers: 4

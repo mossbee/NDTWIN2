@@ -1,0 +1,70 @@
+2025-05-27 07:38:47,095 - INFO - Starting dataset preprocessing with 8 workers
+2025-05-27 07:38:47,096 - INFO - Input: /media/mossbee/Uxie/Projects/NDTWIN_Dataset/
+2025-05-27 07:38:47,096 - INFO - Output: /media/mossbee/Uxie/Projects/NDTWIN_Dataset_Aligned
+2025-05-27 07:38:47,096 - INFO - Target size: (224, 224)
+2025-05-27 07:38:47,096 - INFO - Quality threshold: 0.9
+2025-05-27 07:41:27,217 - INFO - Starting dataset preprocessing with 8 workers
+2025-05-27 07:41:27,217 - INFO - Input: /media/mossbee/Uxie/Projects/NDTWIN_Dataset/
+2025-05-27 07:41:27,218 - INFO - Output: /media/mossbee/Uxie/Projects/NDTWIN_Dataset_Aligned
+2025-05-27 07:41:27,218 - INFO - Target size: (224, 224)
+2025-05-27 07:41:27,218 - INFO - Quality threshold: 0.9
+2025-05-27 07:41:27,381 - INFO - Found 25 images to process
+2025-05-27 07:41:27,426 - INFO - Copied pairs file to /media/mossbee/Uxie/Projects/NDTWIN_Dataset_Aligned/pairs.json
+2025-05-27 07:41:27,427 - INFO - Preprocessing completed!
+2025-05-27 07:41:27,427 - INFO - Total images: 25
+2025-05-27 07:41:27,427 - INFO - Successful: 0
+2025-05-27 07:41:27,427 - INFO - Failed: 25
+2025-05-27 07:41:27,427 - INFO - Success rate: 0.00%
+2025-05-27 07:41:27,427 - INFO - Report saved to: /media/mossbee/Uxie/Projects/NDTWIN_Dataset_Aligned/preprocessing_report.json
+2025-05-27 07:42:14,064 - INFO - Starting dataset preprocessing with 8 workers
+2025-05-27 07:42:14,064 - INFO - Input: /media/mossbee/Uxie/Projects/NDTWIN_Dataset/
+2025-05-27 07:42:14,064 - INFO - Output: /media/mossbee/Uxie/Projects/NDTWIN_Dataset_Aligned
+2025-05-27 07:42:14,064 - INFO - Target size: (224, 224)
+2025-05-27 07:42:14,064 - INFO - Quality threshold: 0.9
+2025-05-27 07:42:14,209 - INFO - Found 25 images to process
+2025-05-27 07:42:18,721 - INFO - Copied pairs file to /media/mossbee/Uxie/Projects/NDTWIN_Dataset_Aligned/pairs.json
+2025-05-27 07:42:18,721 - INFO - Preprocessing completed!
+2025-05-27 07:42:18,721 - INFO - Total images: 25
+2025-05-27 07:42:18,722 - INFO - Successful: 0
+2025-05-27 07:42:18,722 - INFO - Failed: 25
+2025-05-27 07:42:18,722 - INFO - Success rate: 0.00%
+2025-05-27 07:42:18,722 - INFO - Report saved to: /media/mossbee/Uxie/Projects/NDTWIN_Dataset_Aligned/preprocessing_report.json
+2025-05-27 07:44:07,557 - INFO - Starting dataset preprocessing with 8 workers
+2025-05-27 07:44:07,557 - INFO - Input: /media/mossbee/Uxie/Projects/NDTWIN_Dataset/
+2025-05-27 07:44:07,557 - INFO - Output: /media/mossbee/Uxie/Projects/NDTWIN_Dataset_Aligned
+2025-05-27 07:44:07,557 - INFO - Target size: (224, 224)
+2025-05-27 07:44:07,557 - INFO - Quality threshold: 0.9
+2025-05-27 07:44:07,703 - INFO - Found 25 images to process
+2025-05-27 07:44:12,219 - INFO - Copied pairs file to /media/mossbee/Uxie/Projects/NDTWIN_Dataset_Aligned/pairs.json
+2025-05-27 07:44:12,219 - INFO - Preprocessing completed!
+2025-05-27 07:44:12,219 - INFO - Total images: 25
+2025-05-27 07:44:12,219 - INFO - Successful: 0
+2025-05-27 07:44:12,220 - INFO - Failed: 25
+2025-05-27 07:44:12,220 - INFO - Success rate: 0.00%
+2025-05-27 07:44:12,220 - INFO - Report saved to: /media/mossbee/Uxie/Projects/NDTWIN_Dataset_Aligned/preprocessing_report.json
+2025-05-27 07:47:06,023 - INFO - Starting dataset preprocessing with 8 workers
+2025-05-27 07:47:06,024 - INFO - Input: /media/mossbee/Uxie/Projects/NDTWIN_Dataset/
+2025-05-27 07:47:06,024 - INFO - Output: /media/mossbee/Uxie/Projects/NDTWIN_Dataset_Aligned
+2025-05-27 07:47:06,024 - INFO - Target size: (224, 224)
+2025-05-27 07:47:06,024 - INFO - Quality threshold: 0.9
+2025-05-27 07:47:06,166 - INFO - Found 25 images to process
+2025-05-27 07:47:10,512 - INFO - Copied pairs file to /media/mossbee/Uxie/Projects/NDTWIN_Dataset_Aligned/pairs.json
+2025-05-27 07:47:10,513 - INFO - Preprocessing completed!
+2025-05-27 07:47:10,513 - INFO - Total images: 25
+2025-05-27 07:47:10,513 - INFO - Successful: 0
+2025-05-27 07:47:10,513 - INFO - Failed: 25
+2025-05-27 07:47:10,513 - INFO - Success rate: 0.00%
+2025-05-27 07:47:10,513 - INFO - Report saved to: /media/mossbee/Uxie/Projects/NDTWIN_Dataset_Aligned/preprocessing_report.json
+2025-05-27 07:47:32,559 - INFO - Starting dataset preprocessing with 8 workers
+2025-05-27 07:47:32,560 - INFO - Input: /media/mossbee/Uxie/Projects/NDTWIN_Dataset/
+2025-05-27 07:47:32,560 - INFO - Output: /media/mossbee/Uxie/Projects/NDTWIN_Dataset_Aligned
+2025-05-27 07:47:32,560 - INFO - Target size: (224, 224)
+2025-05-27 07:47:32,560 - INFO - Quality threshold: 0.9
+2025-05-27 07:47:32,702 - INFO - Found 25 images to process
+2025-05-27 07:47:37,459 - INFO - Copied pairs file to /media/mossbee/Uxie/Projects/NDTWIN_Dataset_Aligned/pairs.json
+2025-05-27 07:47:37,459 - INFO - Preprocessing completed!
+2025-05-27 07:47:37,459 - INFO - Total images: 25
+2025-05-27 07:47:37,459 - INFO - Successful: 25
+2025-05-27 07:47:37,459 - INFO - Failed: 0
+2025-05-27 07:47:37,459 - INFO - Success rate: 100.00%
+2025-05-27 07:47:37,459 - INFO - Report saved to: /media/mossbee/Uxie/Projects/NDTWIN_Dataset_Aligned/preprocessing_report.json

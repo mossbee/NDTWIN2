@@ -80,19 +80,34 @@ class NDTwinDataset(Dataset):
         image_size: int = 224,
         use_face_alignment: bool = True,
         augment: bool = True,
-        twin_negative_ratio: float = 0.7  # Ratio of twin pairs in negative samples
+        twin_negative_ratio: float = 0.7,  # Ratio of twin pairs in negative samples
+        use_preprocessed: bool = False,  # Whether to use preprocessed images
+        preprocessed_path: Optional[str] = None  # Path to preprocessed images
     ):
         self.dataset_path = dataset_path
         self.mode = mode
         self.image_size = image_size
         self.use_face_alignment = use_face_alignment
         self.twin_negative_ratio = twin_negative_ratio
+        self.use_preprocessed = use_preprocessed
+        self.preprocessed_path = preprocessed_path
         
-        # Initialize face aligner
-        if use_face_alignment:
-            self.face_aligner = FaceAligner((image_size, image_size))
+        # Validate preprocessing setup
+        if use_preprocessed:
+            if preprocessed_path is None:
+                raise ValueError("preprocessed_path must be provided when use_preprocessed=True")
+            if not os.path.exists(preprocessed_path):
+                raise ValueError(f"Preprocessed path does not exist: {preprocessed_path}")
+            self.image_root = preprocessed_path
+            print(f"Using preprocessed images from: {preprocessed_path}")
         else:
-            self.face_aligner = None
+            self.image_root = dataset_path
+            # Initialize face aligner only for live processing
+            if use_face_alignment:
+                self.face_aligner = FaceAligner((image_size, image_size))
+            else:
+                self.face_aligner = None
+            print(f"Using live processing from: {dataset_path}")
         
         # Load pairs data
         with open(pairs_file, 'r') as f:
@@ -107,18 +122,35 @@ class NDTwinDataset(Dataset):
         
         # Build image paths dictionary
         self.folder_images = {}
-        for folder in self.all_folders:
-            folder_path = os.path.join(dataset_path, folder)
-            if os.path.exists(folder_path):
-                images = [f for f in os.listdir(folder_path) 
-                         if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
-                self.folder_images[folder] = images
+        self._build_image_paths()
         
         # Create training pairs
         self.pairs = self._create_pairs()
         
         # Setup transforms
         self.transforms = self._get_transforms(augment and mode == 'train')
+    
+    def _build_image_paths(self):
+        """Build dictionary of available images for each folder"""
+        missing_folders = []
+        for folder in self.all_folders:
+            folder_path = os.path.join(self.image_root, folder)
+            if os.path.exists(folder_path):
+                images = [f for f in os.listdir(folder_path) 
+                         if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+                if images:
+                    self.folder_images[folder] = images
+                else:
+                    missing_folders.append(folder)
+            else:
+                missing_folders.append(folder)
+        
+        if missing_folders:
+            print(f"Warning: {len(missing_folders)} folders missing or empty in {self.image_root}")
+            if len(missing_folders) <= 10:
+                print(f"Missing folders: {missing_folders}")
+            
+        print(f"Found {len(self.folder_images)} folders with images out of {len(self.all_folders)} total folders")
     
     def _create_pairs(self) -> List[Tuple[str, str, str, str, int]]:
         """Create positive and negative pairs for training/validation"""
@@ -193,21 +225,29 @@ class NDTwinDataset(Dataset):
     
     def _load_and_preprocess_image(self, folder: str, image_name: str) -> torch.Tensor:
         """Load and preprocess a single image"""
-        image_path = os.path.join(self.dataset_path, folder, image_name)
+        image_path = os.path.join(self.image_root, folder, image_name)
         
         # Load image
         image = cv2.imread(image_path)
+        if image is None:
+            raise ValueError(f"Failed to load image: {image_path}")
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         
-        # Face alignment if enabled
-        if self.face_aligner is not None:
-            aligned_face = self.face_aligner.align_face(image)
-            if aligned_face is not None:
-                image = aligned_face
-        
-        # Resize if face alignment failed or not used
-        if image.shape[:2] != (self.image_size, self.image_size):
-            image = cv2.resize(image, (self.image_size, self.image_size))
+        if self.use_preprocessed:
+            # Preprocessed images are already aligned and resized
+            # Just ensure correct size
+            if image.shape[:2] != (self.image_size, self.image_size):
+                image = cv2.resize(image, (self.image_size, self.image_size))
+        else:
+            # Live processing: apply face alignment if enabled
+            if self.face_aligner is not None:
+                aligned_face = self.face_aligner.align_face(image)
+                if aligned_face is not None:
+                    image = aligned_face
+            
+            # Resize if face alignment failed or not used
+            if image.shape[:2] != (self.image_size, self.image_size):
+                image = cv2.resize(image, (self.image_size, self.image_size))
         
         # Apply transforms
         transformed = self.transforms(image=image)
@@ -243,13 +283,19 @@ def create_data_loaders(
 ) -> Tuple[DataLoader, DataLoader, DataLoader]:
     """Create train, validation, and test data loaders"""
     
+    # Extract data configuration
+    data_config = config['data']
+    
     # Create full dataset
     full_dataset = NDTwinDataset(
         dataset_path=dataset_path,
         pairs_file=pairs_file,
         mode='train',
-        image_size=config['data']['image_size'],
-        twin_negative_ratio=0.7
+        image_size=data_config['image_size'],
+        twin_negative_ratio=0.7,
+        use_preprocessed=data_config.get('use_preprocessed', False),
+        preprocessed_path=data_config.get('preprocessed_path', None),
+        use_face_alignment=data_config.get('use_face_alignment', True)
     )
     
     # Split dataset
@@ -270,29 +316,194 @@ def create_data_loaders(
     # Create data loaders
     train_loader = DataLoader(
         train_dataset,
-        batch_size=config['data']['batch_size'],
+        batch_size=data_config['batch_size'],
         shuffle=True,
-        num_workers=config['data']['num_workers'],
+        num_workers=data_config['num_workers'],
         pin_memory=True
     )
     
     val_loader = DataLoader(
         val_dataset,
-        batch_size=config['data']['batch_size'],
+        batch_size=data_config['batch_size'],
         shuffle=False,
-        num_workers=config['data']['num_workers'],
+        num_workers=data_config['num_workers'],
         pin_memory=True
     )
     
     test_loader = DataLoader(
         test_dataset,
-        batch_size=config['data']['batch_size'],
+        batch_size=data_config['batch_size'],
         shuffle=False,
-        num_workers=config['data']['num_workers'],
+        num_workers=data_config['num_workers'],
         pin_memory=True
     )
     
     return train_loader, val_loader, test_loader
+
+
+def validate_preprocessed_dataset(
+    original_dataset_path: str,
+    preprocessed_path: str,
+    pairs_file: str
+) -> Dict[str, any]:
+    """
+    Validate that preprocessed dataset is complete and ready for use.
+    
+    Args:
+        original_dataset_path: Path to original dataset
+        preprocessed_path: Path to preprocessed images
+        pairs_file: Path to pairs.json file
+        
+    Returns:
+        Dictionary with validation results and statistics
+    """
+    results = {
+        'valid': True,
+        'errors': [],
+        'warnings': [],
+        'statistics': {}
+    }
+    
+    # Check if preprocessed path exists
+    if not os.path.exists(preprocessed_path):
+        results['valid'] = False
+        results['errors'].append(f"Preprocessed path does not exist: {preprocessed_path}")
+        return results
+    
+    # Load pairs data
+    try:
+        with open(pairs_file, 'r') as f:
+            twin_pairs = json.load(f)
+    except Exception as e:
+        results['valid'] = False
+        results['errors'].append(f"Failed to load pairs file: {e}")
+        return results
+    
+    # Get all required folders
+    all_folders = [pair for twin_pair in twin_pairs for pair in twin_pair]
+    
+    # Check original dataset statistics
+    original_stats = {'folders': 0, 'images': 0, 'missing_folders': []}
+    for folder in all_folders:
+        original_folder_path = os.path.join(original_dataset_path, folder)
+        if os.path.exists(original_folder_path):
+            images = [f for f in os.listdir(original_folder_path) 
+                     if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+            if images:
+                original_stats['folders'] += 1
+                original_stats['images'] += len(images)
+            else:
+                original_stats['missing_folders'].append(folder)
+        else:
+            original_stats['missing_folders'].append(folder)
+    
+    # Check preprocessed dataset statistics
+    preprocessed_stats = {'folders': 0, 'images': 0, 'missing_folders': []}
+    for folder in all_folders:
+        preprocessed_folder_path = os.path.join(preprocessed_path, folder)
+        if os.path.exists(preprocessed_folder_path):
+            images = [f for f in os.listdir(preprocessed_folder_path) 
+                     if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+            if images:
+                preprocessed_stats['folders'] += 1
+                preprocessed_stats['images'] += len(images)
+            else:
+                preprocessed_stats['missing_folders'].append(folder)
+        else:
+            preprocessed_stats['missing_folders'].append(folder)
+    
+    # Compare statistics
+    results['statistics'] = {
+        'original': original_stats,
+        'preprocessed': preprocessed_stats,
+        'total_folders_expected': len(all_folders)
+    }
+    
+    # Check for missing folders in preprocessed dataset
+    if preprocessed_stats['missing_folders']:
+        if len(preprocessed_stats['missing_folders']) > len(original_stats['missing_folders']):
+            results['warnings'].append(
+                f"Preprocessed dataset is missing {len(preprocessed_stats['missing_folders'])} folders "
+                f"that exist in original dataset"
+            )
+    
+    # Check if preprocessed has significantly fewer images
+    if original_stats['images'] > 0:
+        coverage = preprocessed_stats['images'] / original_stats['images']
+        if coverage < 0.8:
+            results['warnings'].append(
+                f"Preprocessed dataset has only {coverage*100:.1f}% of original images "
+                f"({preprocessed_stats['images']} vs {original_stats['images']})"
+            )
+    
+    # Check if any preprocessing was done
+    if preprocessed_stats['images'] == 0:
+        results['valid'] = False
+        results['errors'].append("No preprocessed images found")
+    
+    return results
+
+
+def print_dataset_statistics(
+    dataset_path: str,
+    pairs_file: str,
+    preprocessed_path: Optional[str] = None
+):
+    """Print detailed statistics about the dataset"""
+    print("=" * 60)
+    print("DATASET STATISTICS")
+    print("=" * 60)
+    
+    # Load pairs data
+    with open(pairs_file, 'r') as f:
+        twin_pairs = json.load(f)
+    
+    print(f"Twin pairs defined: {len(twin_pairs)}")
+    all_folders = [pair for twin_pair in twin_pairs for pair in twin_pair]
+    print(f"Total individuals: {len(all_folders)}")
+    
+    # Original dataset statistics
+    print(f"\nOriginal Dataset: {dataset_path}")
+    original_folders = 0
+    original_images = 0
+    for folder in all_folders:
+        folder_path = os.path.join(dataset_path, folder)
+        if os.path.exists(folder_path):
+            images = [f for f in os.listdir(folder_path) 
+                     if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+            if images:
+                original_folders += 1
+                original_images += len(images)
+    
+    print(f"  Available folders: {original_folders}/{len(all_folders)}")
+    print(f"  Total images: {original_images}")
+    if original_folders > 0:
+        print(f"  Average images per folder: {original_images/original_folders:.1f}")
+    
+    # Preprocessed dataset statistics if available
+    if preprocessed_path and os.path.exists(preprocessed_path):
+        print(f"\nPreprocessed Dataset: {preprocessed_path}")
+        preprocessed_folders = 0
+        preprocessed_images = 0
+        for folder in all_folders:
+            folder_path = os.path.join(preprocessed_path, folder)
+            if os.path.exists(folder_path):
+                images = [f for f in os.listdir(folder_path) 
+                         if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+                if images:
+                    preprocessed_folders += 1
+                    preprocessed_images += len(images)
+        
+        print(f"  Available folders: {preprocessed_folders}/{len(all_folders)}")
+        print(f"  Total images: {preprocessed_images}")
+        if preprocessed_folders > 0:
+            print(f"  Average images per folder: {preprocessed_images/preprocessed_folders:.1f}")
+        
+        if original_images > 0:
+            coverage = preprocessed_images / original_images
+            print(f"  Coverage: {coverage*100:.1f}% of original images")
+    
+    print("=" * 60)
 
 
 if __name__ == "__main__":

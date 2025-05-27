@@ -4,6 +4,7 @@ import random
 from typing import List, Tuple
 import argparse
 from collections import defaultdict
+from pathlib import Path
 
 
 def validate_dataset_structure(dataset_path: str) -> bool:
